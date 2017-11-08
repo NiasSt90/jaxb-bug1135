@@ -1,7 +1,6 @@
 import org.hamcrest.MatcherAssert;
 import org.junit.Assert;
 import org.junit.Test;
-import org.xml.sax.InputSource;
 import org.xmlunit.matchers.CompareMatcher;
 
 import javax.xml.bind.JAXBContext;
@@ -13,7 +12,7 @@ import java.io.StringReader;
 import java.io.StringWriter;
 
 
-public class Demo {
+public class DemoTest {
 
 	/**
 	 * xsi:type information is lost. marshaled <element>B</element> instead of <element xsi:type=...>B</element>
@@ -35,7 +34,7 @@ public class Demo {
 									 + "    <element1 xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"ClassType1\">B1</element1>\n"
 									 + "    <element2 xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"ClassType2\">C1</element2>\n"
 									 + "</root>";
-		//MatcherAssert.assertThat(resultWriter.toString(), CompareMatcher.isIdenticalTo(expectedXml1).ignoreWhitespace());
+		MatcherAssert.assertThat(resultWriter.toString(), CompareMatcher.isIdenticalTo(expectedXml1).ignoreWhitespace());
 
 
 		resultWriter = new StringWriter();
