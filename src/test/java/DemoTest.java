@@ -31,9 +31,9 @@ public class DemoTest {
 	 * xsi:type information is lost. marshaled <element>B</element> instead of <element xsi:type=...>B</element>
 	 */
 	@Test
-	public void testMarshal() throws Exception {
+	public void testMarshalSingleElement() throws Exception {
 		JAXBContext jc = JAXBContext.newInstance(Mapping.class);
-		System.out.println("****** VALIDATE marshal with JAXB-BuildId " + determineBuildInfo(jc) + " ******");
+		System.out.println("****** VALIDATE marshal single element with JAXB-BuildId " + determineBuildInfo(jc) + " ******");
 		Marshaller marshaller = jc.createMarshaller();
 		marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
 		StringWriter resultWriter = new StringWriter();
@@ -49,11 +49,24 @@ public class DemoTest {
 									 + "    <element2 xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"ClassType2\">C1</element2>\n"
 									 + "</root>";
 		MatcherAssert.assertThat(resultWriter.toString(), CompareMatcher.isIdenticalTo(expectedXml1).ignoreWhitespace());
+	}
+	/**
+	 * xsi:type information is lost. marshaled <element>B</element> instead of <element xsi:type=...>B</element>
+	 */
+	@Test
+	public void testMarshalCollection() throws Exception {
+		JAXBContext jc = JAXBContext.newInstance(Mapping.class);
+		System.out.println("****** VALIDATE marshal collection with JAXB-BuildId " + determineBuildInfo(jc) + " ******");
+		Marshaller marshaller = jc.createMarshaller();
+		marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+		StringWriter resultWriter = new StringWriter();
 
-
-		resultWriter = new StringWriter();
+		Mapping mapping = new Mapping();
+		mapping.element1 = new B("B1");
+		mapping.element2 = new C("C1");
 		mapping.list.add(new B("B"));
 		mapping.list.add(new C("C"));
+		resultWriter = new StringWriter();
 		String expectedXml2 = "<root>\n"
 									+ "    <list>\n"
 									+ "        <element xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"ClassType1\">B</element>\n"
@@ -62,16 +75,15 @@ public class DemoTest {
 									+ "    <element1 xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"ClassType1\">B1</element1>\n"
 									+ "    <element2 xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"ClassType2\">C1</element2>\n"
 									+ "</root>";
-
 		marshaller.marshal(mapping, resultWriter);
 		MatcherAssert.assertThat(resultWriter.toString(), CompareMatcher.isIdenticalTo(expectedXml2).ignoreWhitespace());
 	}
 
 	@Test
-	public void testUnmarshal() throws Exception {
+	public void testUnmarshalSingleElement() throws Exception {
 
 		JAXBContext jc = JAXBContext.newInstance(Mapping.class);
-		System.out.println("****** VALIDATE Unmarshal with JAXB-BuildId " + determineBuildInfo(jc) + " ******");
+		System.out.println("****** VALIDATE Unmarshal single element with JAXB-BuildId " + determineBuildInfo(jc) + " ******");
 		Unmarshaller unmarshaller = jc.createUnmarshaller();
 
 		//works without list..
@@ -83,6 +95,14 @@ public class DemoTest {
 		Assert.assertNotNull(element.getValue());
 		Assert.assertEquals(B.class, element.getValue().element1.getClass());
 		Assert.assertEquals(C.class, element.getValue().element2.getClass());
+	}
+
+	@Test
+	public void testUnmarshalCollection() throws Exception {
+
+		JAXBContext jc = JAXBContext.newInstance(Mapping.class);
+		System.out.println("****** VALIDATE Unmarshal collection with JAXB-BuildId " + determineBuildInfo(jc) + " ******");
+		Unmarshaller unmarshaller = jc.createUnmarshaller();
 
 		//don't work -> try to instantiate the abstract class
 		String sourceXml2 = "<root>\n"
@@ -95,7 +115,7 @@ public class DemoTest {
 									+ "</root>";
 
 		try {
-			element = unmarshaller.unmarshal(new StreamSource(new StringReader(sourceXml2)), Mapping.class);
+			JAXBElement<Mapping> element = unmarshaller.unmarshal(new StreamSource(new StringReader(sourceXml2)), Mapping.class);
 			Assert.assertEquals(2, element.getValue().list.size());
 		}
 		catch (Throwable e) {
