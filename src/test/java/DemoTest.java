@@ -10,9 +10,22 @@ import javax.xml.bind.Unmarshaller;
 import javax.xml.transform.stream.StreamSource;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.lang.reflect.Method;
 
 
 public class DemoTest {
+
+	private String determineBuildInfo(JAXBContext context) {
+		try {
+			Method getBuildId = context.getClass().getMethod("getBuildId");
+			Object res = getBuildId.invoke(context);
+			return (String) res;
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		return "UNKNOWN";
+	}
 
 	/**
 	 * xsi:type information is lost. marshaled <element>B</element> instead of <element xsi:type=...>B</element>
@@ -20,6 +33,7 @@ public class DemoTest {
 	@Test
 	public void testMarshal() throws Exception {
 		JAXBContext jc = JAXBContext.newInstance(Mapping.class);
+		System.out.println("****** VALIDATE marshal with JAXB-BuildId " + determineBuildInfo(jc) + " ******");
 		Marshaller marshaller = jc.createMarshaller();
 		marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
 		StringWriter resultWriter = new StringWriter();
@@ -57,6 +71,7 @@ public class DemoTest {
 	public void testUnmarshal() throws Exception {
 
 		JAXBContext jc = JAXBContext.newInstance(Mapping.class);
+		System.out.println("****** VALIDATE Unmarshal with JAXB-BuildId " + determineBuildInfo(jc) + " ******");
 		Unmarshaller unmarshaller = jc.createUnmarshaller();
 
 		//works without list..
